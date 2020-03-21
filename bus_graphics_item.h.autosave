@@ -1,0 +1,18 @@
+#ifndef BUS_H
+#define BUS_H
+
+#include <QWidget>
+#include <QGraphicsItem>
+#include <QGraphicsPixmapItem>
+
+class BusStop_Graphics_Item : public QGraphicsPixmapItem
+{
+public:
+    BusStop_Graphics_Item(QGraphicsItem *parent = nullptr);
+    BusStop_Graphics_Item(const QPixmap &pixmap, QGraphicsItem *parent = nullptr);
+private:
+    QString name;
+    int inde
+};
+
+#endif // BUS_H
