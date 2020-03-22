@@ -10,8 +10,10 @@
 #include <map>
 #include <QVector>
 
-#include "customview.h"
 #include "busstop_graphics_item.h"
+#include "setPath.h"
+#include "matrixop.h"
+#include "stringop.h"
 
 class QPixmap;
 class QGraphicsPixmapItem;
@@ -30,15 +32,16 @@ public:
     ~MainWindow();
 
     void showRoute();
-    std::string qstr2str(const QString);
-    QString str2qstr(const std::string);
     void showRowItem(int row);
-    void readStops();
     void debug_printStops();
+    void createMap();
+    void createOriginConnection();
+    void createAction();
+    void createMenu();
 
 public slots:
     void deal_mousemove_signal(QPoint point);
-    bool eventFilter(QObject *target, QEvent *event);
+    //bool eventFilter(QObject *target, QEvent *event);
 
 private slots:
     void choose_from_from_map(bool);
@@ -46,34 +49,27 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QWidget *sceneWidget;
     QGraphicsScene *scene;
-    CustomView *view;
-    void createAction();
-    void createMenu();
-
     QAction *aboutQtAction;
 
     QGraphicsPixmapItem *map;
-    BusStop_Graphics_Item *busStop1;
-    BusStop_Graphics_Item *busStop2;
-    BusStop_Graphics_Item *busStop3;
     BusStop_Graphics_Item **busStop;
+
+    //站点数量
     int stop_num;
 
+    //给graphicsView套的壳子
     Graphics_view_zoom *view_zoom;
 
+    // ???
     QMouseEvent *view_mouseEvent;
 
-    std::vector<std::string> stops;
-    //std::vector<std::pair<int, int>> poses;
-    QVector<QPointF> poses;
-
-    std::map<int, std::string> num_to_name;
-    std::map<std::string, int> name_to_num;
-
+    // 每次点击地图选点的时候就计数加一
+    // 奇数开始选，偶数就停止选
     int choose_start_cnt;
     int choose_to_cnt;
 
+    MatrixOp * mapOp;
+    StringOp *stringOp;
 };
 #endif // MAINWINDOW_H

@@ -16,17 +16,26 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    DijkstraForDis.cpp \
     busstop_graphics_item.cpp \
     customview.cpp \
     graphics_view_zoom.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    matrixop.cpp \
+    setPath.cpp \
+    stringop.cpp
 
 HEADERS += \
+    DijkstraForDis.h \
+    Route_man.h \
     busstop_graphics_item.h \
     customview.h \
     graphics_view_zoom.h \
-    mainwindow.h
+    mainwindow.h \
+    matrixop.h \
+    setPath.h \
+    stringop.h
 
 FORMS += \
     mainwindow.ui
@@ -41,5 +50,6 @@ RESOURCES += \
 
 DISTFILES += \
     TODO \
+    route.txt \
     stopPos.txt \
     stops.txt
