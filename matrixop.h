@@ -46,7 +46,7 @@ private:
     //03-07 新建了两个全局变量，为了实现./file/TODO里的需求，即路径与矩阵的映射
     std::map<int, int> route_to_which_matrix;
     std::map<int, int> matrix_target_route;
-    QVector<QPointF> poses;
+    QVector<QPointF> poses; //POSES是按照编号储存的
 
 private:
     int route_num;

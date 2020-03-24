@@ -9,11 +9,13 @@
 #include <vector>
 #include <map>
 #include <QVector>
+#include <set>
 
 #include "busstop_graphics_item.h"
 #include "setPath.h"
 #include "matrixop.h"
 #include "stringop.h"
+#include "Route_man.h"
 
 class QPixmap;
 class QGraphicsPixmapItem;
@@ -71,5 +73,15 @@ private:
 
     MatrixOp * mapOp;
     StringOp *stringOp;
+
+//重新开一个域，用来存放查询之后级联操作所需要的东西
+private:
+    int res_num;					//查询结果线路的数量
+    //或许我要再次使用route_man了 (暂时行不通)
+    std::set<Path> *res_paths;		//保存结果那些路径的引用
+    int change_value;				//换乘次数
+    QGraphicsLineItem **res_lines;	//查询结果画在地图上的那些线
+
+    void show_path_on_map(const Path &res);
 };
 #endif // MAINWINDOW_H

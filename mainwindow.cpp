@@ -23,11 +23,21 @@
 #include "graphics_view_zoom.h"
 #include "windows.h"
 
+//变动：
+//res_paths改指针
+//为什么点两次查询会崩溃 (点两次查询并不会崩溃，而是点了查询再点listWeight再点查询会崩溃)
+//因为在ui->routesList被删除的时候, 现在指向的row也会发生改变，改变row会调用一个槽，这个槽会获取当前row
+//一开始我的解决方案是在showRoutes里里面先disconnect 然后 clear insert完成之后再connect
+//现在的解决方案在row_change槽函数的首行
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , choose_start_cnt(0)
     , choose_to_cnt(0)
+    , res_num(0)
+    , change_value(0)
+    , res_lines(nullptr)
 {
     ui->setupUi(this);
 
@@ -137,24 +147,31 @@ void MainWindow::showRoute() {
     int index_from = mapOp->name_to_num[fr2];
     int index_to = mapOp->name_to_num[to2];
 
+    // 存一下结果路线集
+    res_paths = &(mapOp->D[index_from][index_to].path);
+    change_value = mapOp->D[index_from][index_to].value;
+    qDebug() << "保存完成";
+    //disconnect(ui->routesList, &QListWidget::currentRowChanged, this, &MainWindow::showRowItem);
+
+    qDebug() << "当前row:" << ui->routesList->currentRow();
+
     ui->routesList->clear();
-    for(int i = 0; i < mapOp->D[index_from][index_to].value; i++) {
-        ui->routesList->insertItem(ui->routesList->count(), QString().sprintf("路线%d ", i+1));
+    qDebug() << "清除完成";
+    for(int i = 0; i < (mapOp->D)[index_from][index_to].value; i++) {
+        ui->routesList->insertItem(ui->routesList->count(), QString().asprintf("路线%d ", i+1));
     }
+    qDebug() << "insertItems 完成";
+    //connect(ui->routesList, &QListWidget::currentRowChanged, this, &MainWindow::showRowItem);
 
-    string routes;
+    /*
     ui->textBrowser->clear();
-
-
-
     for(auto onePath : mapOp->D[index_from][index_to].path) {
         for(auto edge : onePath) {
-            //qDebug("%s (%d 号线) --> ", stringOp.str2qstr(num_to_name[edge.vex]), edge.route_num+1);
-            //qDebug("%s (%d 号线) --> ", mapOp->num_to_name[edge.vex].c_str(), edge.route_num+1);
-            QString s;
-            ui->textBrowser->append(stringOp->str2qstr(mapOp->num_to_name[edge.vex]) + s.sprintf(" (%d 号线) -->\n", edge.route_num+1));
+            //QString s;
+            ui->textBrowser->append(stringOp->str2qstr(mapOp->num_to_name[edge.vex]) + QString().asprintf(" (%d 号线) -->\n", edge.route_num+1));
         }
     }
+    */
 
 
 
@@ -174,8 +191,16 @@ void MainWindow::showRoute() {
 }
 
 void MainWindow::showRowItem(int row) {
+    if(row == -1) return;
     QListWidgetItem *item = ui->routesList->item(row);
-    qDebug() << item->text();
+    qDebug() << item->text() << "row : " << row;
+
+    //当row开始变化的时候，打印线路
+    auto it = res_paths->begin();
+    while(row--) {
+        it++;
+    }
+    show_path_on_map(*it);
 }
 
 
@@ -240,5 +265,46 @@ void MainWindow::choose_to_from_map(bool) {
         for(int i = 0; i < stop_num; i++) {
             disconnect(busStop[i], &BusStop_Graphics_Item::whoAmI, ui->lineEdit_2, &QLineEdit::setText);
         }
+    }
+}
+
+
+void MainWindow::show_path_on_map(const Path &res) {
+    for(auto i : res) {
+        qDebug() << stringOp->str2qstr(mapOp->num_to_name[i.vex]) << '(' << i.route_num << ')' << "-->";
+    }
+    std::cout << std::endl;
+
+    static int lines_num = -1;
+    //先把当前的res_lines都清除了
+    //当然还得先在constructor里面把res_lines 初始化为 nullptr
+    if(res_lines != nullptr) {
+        qDebug() << "while delete";
+        qDebug() << "lines_num :" << lines_num;
+        for(int i = 0; i < lines_num; i++) {
+            delete res_lines[i];
+        }
+        delete[] res_lines;
+    }
+
+    lines_num = res.len() - change_value; //有这么多线要画
+    qDebug() << "lines_num " << lines_num;
+    qDebug() << "res.len " << res.len();
+    qDebug() << "change_value" << change_value;
+    res_lines = new QGraphicsLineItem * [lines_num];
+
+    int j = 0; // j 保证小于 res.len()，用来遍历这个Path的结点们
+
+    for(int i = 0; i < lines_num && j < res.len(); i++, j++) {
+        if(res.get(j).vex == res.get(j+1).vex) {
+            j = j+1;
+            if(j >= res.len()) {
+                qDebug() << "res len out of bounds";
+                exit(0);
+            }
+        }
+        qDebug() << "connect " << stringOp->str2qstr(mapOp->num_to_name[res.get(j).vex]) << "and" << stringOp->str2qstr(mapOp->num_to_name[res.get(j+1).vex]);
+        QLineF tmpLine(mapOp->poses[res.get(j).vex], mapOp->poses[res.get(j+1).vex]);
+        res_lines[i] = new QGraphicsLineItem(tmpLine, map);
     }
 }

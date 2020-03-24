@@ -15,8 +15,14 @@ https://blog.csdn.net/qq_23100787/article/details/51162944
 listWidget问题
 https://bbs.csdn.net/topics/390906581
 
-这些都是学问
-https://bbs.csdn.net/topics/390906581
-
--[] 为什么输出路径的时候route_num要加一
+-[] 为什么输出路径的时候route_num要加一 我还没有解决路径编号一致性的问题 现在D**里面的route_num是数组里面的num
 -[] 增加联动，也就是routesList 和 textBrowser的联动
+
+好像有一个宏可以让qDebug()全部失效
+
+new feature:
+搜索框建议
+kmp算法
+combine with demo : googlesuggest
+
+

@@ -6,9 +6,15 @@
 #include <iostream>
 #include <iterator>
 
+/*
+似乎只能用在保存线路不能用来保存查询结果
+这是一个用于保存路径的类
+Route结构体用来保存路径的信息
+*/
+
 struct Route {
     std::vector<int> stops;
-    int num;
+    int num; //线路的编号
     struct Route *next;
     struct Route *pre;
 

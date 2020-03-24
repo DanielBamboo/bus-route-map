@@ -14,17 +14,24 @@
 #include <iostream>
 #include <climits>
 #include <algorithm>
+
 using std::set;
 using std::cout;
 using std::endl;
 using std::vector;
 
+//我在设计这个Edge的时候...实际上它是一个Vex
 struct Edge {
     int route_num;
     int vex;
     Edge(int vex, int route_num) {
         this->vex = vex;
         this->route_num = route_num;
+    }
+    bool operator == (const Edge &rhs) {
+        if(this->route_num != rhs.route_num) 	return false;
+        if(this->vex != rhs.vex)				return false;
+        return true;
     }
 };
 
@@ -62,12 +69,12 @@ public:
         edge.push_back(Edge(vex, route_num));
     }
 
-    vector<Edge>::iterator begin() {
-        return edge.begin();
+    vector<Edge>::const_iterator begin() const {
+        return edge.cbegin();
     }
     
-    vector<Edge>::iterator end() {
-        return edge.end();
+    vector<Edge>::const_iterator end() const {
+        return edge.cend();
     }
 
     
@@ -83,7 +90,10 @@ public:
     int len() const {
         return edge.size(); 
     }
-    
+
+    const Edge get(int index) const {
+        return edge[index];
+    }
 
 private:
     vector<Edge> edge;
