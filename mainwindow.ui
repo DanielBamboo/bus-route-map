@@ -99,7 +99,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="lineEdit"/>
+        <widget class="SearchBox" name="lineEdit"/>
        </item>
        <item>
         <widget class="QPushButton" name="from_choose_button">
@@ -123,7 +123,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="lineEdit_2"/>
+        <widget class="SearchBox" name="lineEdit_2"/>
        </item>
        <item>
         <widget class="QPushButton" name="to_choose_button">
@@ -169,6 +169,13 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SearchBox</class>
+   <extends>QLineEdit</extends>
+   <header>.\search_box\searchbox.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

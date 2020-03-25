@@ -1,4 +1,5 @@
 QT       += core gui
+QT	 += network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -23,6 +24,9 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     matrixop.cpp \
+    search_box/googlesuggest.cpp \
+    search_box/kmp.cpp \
+    search_box/searchbox.cpp \
     setPath.cpp \
     stringop.cpp
 
@@ -34,6 +38,9 @@ HEADERS += \
     graphics_view_zoom.h \
     mainwindow.h \
     matrixop.h \
+    search_box/googlesuggest.h \
+    search_box/kmp.h \
+    search_box/searchbox.h \
     setPath.h \
     stringop.h
 

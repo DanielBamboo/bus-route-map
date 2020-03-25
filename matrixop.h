@@ -37,6 +37,8 @@ public:
     void print_num_matrix(Dis **a, int size);
     void print_path_num_matrix(Dis **a, int size);
 
+    QVector<QString> getNames();
+
     ~MatrixOp();
 
 private:

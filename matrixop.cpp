@@ -123,6 +123,7 @@ void MatrixOp::createMatrix(const char *filename) {
         Dijkstra(A[i], num, i);
     }
 
+    /*
     for(int i = 0; i < route_num; i++) {
         print_num_matrix(A[i], num);
         printf("///////////////////////////////\n");
@@ -133,8 +134,12 @@ void MatrixOp::createMatrix(const char *filename) {
         cout << "route:" << i+1 << endl;
         print_matrix(A[i], num);
     }
+    */
 
     //输出路线信息，检查是否正确
+    //这是一个unordered_map，我写这一块代码主要是我想看看每个矩阵的情况是否良好
+    //但是由于矩阵的对称性所以我需要用一个pair来防止重复
+    /*
     unordered_map<pair<int, int>, int, pair_hash> reach;
     for(int i = 0; i < route_num; i++) {
         for(int j = 0; j < num; j++) {
@@ -151,10 +156,11 @@ void MatrixOp::createMatrix(const char *filename) {
         
         //TODO
         //这边也得改
-        print_matrix(A[i], num);
+        //print_matrix(A[i], num);
         reach.clear();
     }
     //改用新的输出路线的方式
+    */
     
     //参考论文里面，对所有A[i]，算出来一个min矩阵，也就是min[i][j] = min(A[k][i][j], k = 0, 1, 2, 3...
     //num是公交站的数量，在这里size和num说的是同一个东西
@@ -162,6 +168,7 @@ void MatrixOp::createMatrix(const char *filename) {
         combineAs(route_num, num);
 
     Dijkstra(B, num, -1);
+    /*
     cout << "after combination and Dijstra algorithm: \n";
     for(int i = 0; i < num; i++) {
         for(int j = 0; j < num; j++)
@@ -171,12 +178,16 @@ void MatrixOp::createMatrix(const char *filename) {
                 cout << "∞" << ' ';
         cout << endl;
     }
+    */
 
     D = B;
     
+    /*
     print_matrix(D, num);
     cout << "print path num matrix" << endl;
+    */
     print_path_num_matrix(D, num);
+    fflush(stdout);
 }
 
 MatrixOp::~MatrixOp() {
@@ -264,4 +275,12 @@ void MatrixOp::print_path_num_matrix(Dis **a, int size) {
         }
         printf("\n");
     }
+}
+
+QVector<QString> MatrixOp::getNames() {
+    QVector<QString> res;
+    for(auto i : num_to_name) {
+        res.push_back(stringOp.str2qstr(i.second));
+    }
+    return res;
 }

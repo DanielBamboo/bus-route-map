@@ -60,6 +60,8 @@ MainWindow::MainWindow(QWidget *parent)
     int end = 7;
     qDebug() << (mapOp->D)[start][end].value;
     */
+    ui->lineEdit->setMap(mapOp);
+    ui->lineEdit_2->setMap(mapOp);
 }
 
 void MainWindow::createOriginConnection() {
@@ -157,7 +159,7 @@ void MainWindow::showRoute() {
 
     ui->routesList->clear();
     qDebug() << "清除完成";
-    for(int i = 0; i < (mapOp->D)[index_from][index_to].value; i++) {
+    for(int i = 0; i < (mapOp->D)[index_from][index_to].path.size(); i++) {
         ui->routesList->insertItem(ui->routesList->count(), QString().asprintf("路线%d ", i+1));
     }
     qDebug() << "insertItems 完成";
@@ -188,6 +190,7 @@ void MainWindow::showRoute() {
     */
 
     //ui->routesList->insertItem(ui->routesList->count(), route);
+    show_path_on_map(*(res_paths->begin()));
 }
 
 void MainWindow::showRowItem(int row) {
@@ -198,6 +201,7 @@ void MainWindow::showRowItem(int row) {
     //当row开始变化的时候，打印线路
     auto it = res_paths->begin();
     while(row--) {
+        qDebug("it++");
         it++;
     }
     show_path_on_map(*it);
@@ -270,10 +274,13 @@ void MainWindow::choose_to_from_map(bool) {
 
 
 void MainWindow::show_path_on_map(const Path &res) {
+    qDebug("show path on map");
+    qDebug() << "res.length = " <<  QString::number(res.len());
     for(auto i : res) {
         qDebug() << stringOp->str2qstr(mapOp->num_to_name[i.vex]) << '(' << i.route_num << ')' << "-->";
     }
     std::cout << std::endl;
+
 
     static int lines_num = -1;
     //先把当前的res_lines都清除了
