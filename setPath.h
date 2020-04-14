@@ -22,8 +22,9 @@ using std::vector;
 
 //我在设计这个Edge的时候...实际上它是一个Vex
 struct Edge {
-    int route_num;
-    int vex;
+    int route_num;	// 这个点归属于哪条线路
+    int vex;		// 这个点的编号
+
     Edge(int vex, int route_num) {
         this->vex = vex;
         this->route_num = route_num;
@@ -37,6 +38,9 @@ struct Edge {
 
 class Path {
 public:
+    ~Path() {
+        edge.clear();
+    }
     // TODO
     // 这个加号得改，也就是删除的是lhs的末尾还是rhs的开头
     const Path operator +(const Path & rhs) const {
@@ -105,24 +109,36 @@ const set<Path> operator * (const set<Path> &lhs, const set<Path> &rhs);
 
 class Dis {
 public:
-    int value;
-    set<Path> path;
-    bool initialized;
+    int value;			//换乘次数
+    set<Path> path;		//所有路径
+    bool initialized;	//是否被初始化//已经没有使用了
 
     // methods
     Dis() : value(0), initialized(false) {}
+    ~Dis() {
+        path.clear();
+    }
 
     void addPath(const Path &t) {
         path.insert(t);
     }
 
     void addPath(const set<Path> &t) {
+        std::cout << "addPath begin" << " current path size is " << path.size() << ", set<Path> &t's size is " << t.size() << std::endl;
+        /*
         std::set_union(std::begin(path), std::end(path),
                        std::begin(t), std::end(t),
                        inserter(path, std::begin(path)));
+        */
+
+        for(auto &i : t) {
+            path.insert(i);
+        }
+        std::cout << "addPath end" << std::endl;
     }
 
     void assignPath(const set<Path> &other) {
+        path.clear();
         path = other;
     }
 

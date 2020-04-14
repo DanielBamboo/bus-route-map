@@ -16,6 +16,8 @@
 #include "matrixop.h"
 #include "stringop.h"
 #include "Route_man.h"
+#include "info.h"
+#include "editroutes.h"
 
 class QPixmap;
 class QGraphicsPixmapItem;
@@ -44,18 +46,25 @@ public:
 public slots:
     void deal_mousemove_signal(QPoint point);
     //bool eventFilter(QObject *target, QEvent *event);
+    void receive_comfirm_changes_from_editRoutes(bool);
+    void on_actionDoSomeQueryTriggered();
+    void on_actinoDoSomeEditTriggered();
 
 private slots:
     void choose_from_from_map(bool);
     void choose_to_from_map(bool);
 
+
 private:
     Ui::MainWindow *ui;
     QGraphicsScene *scene;
     QAction *aboutQtAction;
+    QAction *doSomeQuery;
+    QAction *doSomeEdit;
 
     QGraphicsPixmapItem *map;
-    BusStop_Graphics_Item **busStop;
+    //BusStop_Graphics_Item **busStop;
+    QVector<BusStop_Graphics_Item *> busStop;
 
     //站点数量
     int stop_num;
@@ -74,6 +83,9 @@ private:
     MatrixOp * mapOp;
     StringOp *stringOp;
 
+    Info * info;
+    EditRoutes *editRoutes;
+
 //重新开一个域，用来存放查询之后级联操作所需要的东西
 private:
     int res_num;					//查询结果线路的数量
@@ -83,5 +95,6 @@ private:
     QGraphicsLineItem **res_lines;	//查询结果画在地图上的那些线
 
     void show_path_on_map(const Path &res);
+    void repaintBusStop();
 };
 #endif // MAINWINDOW_H

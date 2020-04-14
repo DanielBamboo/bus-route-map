@@ -47,7 +47,3 @@ combine with demo : googlesuggest
 在QTDESIGNER里面设置一下QVBoxLayout最后一个参数
 
 writeToFile的时候注意不要写入已经被删除的站点
-
-不应该有取消这个按钮，因为更改无法撤销，应该把应用更改改成关闭dIALOG或者点击按钮
-
-删除线路的时候也应该删除掉那两个路线--矩阵映射的对应元素

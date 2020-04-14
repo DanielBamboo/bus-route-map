@@ -168,6 +168,16 @@
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionquery_route_or_stop">
+   <property name="text">
+    <string>查询路线或站点</string>
+   </property>
+  </action>
+  <action name="actionedit">
+   <property name="text">
+    <string>作一些更改</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

@@ -250,7 +250,7 @@ void GSuggestCompletion::setMap(MatrixOp *mapOp) {
 void GSuggestCompletion::kmpResult(QString str) {
     using namespace std;
     QVector<QString> res;
-    QVector<QString> names = mapOp->getNames();
+    QVector<QString> names = mapOp->QgetNames();
     //先不写模式匹配，因为我还没有实现过，先实现一下普通的搜索算法
     for(auto name : names) {
         int i = 0, j = 0;

@@ -17,10 +17,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    DijkstraForDis.cpp \
     busstop_graphics_item.cpp \
     customview.cpp \
+    editroutes.cpp \
     graphics_view_zoom.cpp \
+    info.cpp \
     main.cpp \
     mainwindow.cpp \
     matrixop.cpp \
@@ -31,11 +32,12 @@ SOURCES += \
     stringop.cpp
 
 HEADERS += \
-    DijkstraForDis.h \
     Route_man.h \
     busstop_graphics_item.h \
     customview.h \
+    editroutes.h \
     graphics_view_zoom.h \
+    info.h \
     mainwindow.h \
     matrixop.h \
     search_box/googlesuggest.h \
@@ -45,6 +47,8 @@ HEADERS += \
     stringop.h
 
 FORMS += \
+    editroutes.ui \
+    info.ui \
     mainwindow.ui
 
 # Default rules for deployment.

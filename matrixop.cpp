@@ -1,24 +1,61 @@
 #include "matrixop.h"
 #include "Route_man.h"
-#include "DijkstraForDis.h"
+//#include "DijkstraForDis.h"
 
 #include <fstream>
 #include <QDebug>
 #include <set>
 #include <unordered_map>
 #include <cstdio>
+#include <climits>
+#include <vector>
 
 
 using namespace std;
 
-MatrixOp::MatrixOp()
+MatrixOp::MatrixOp() :
+    A(nullptr),
+    D(nullptr),
+    route_num(0),
+    num(0)
 {
 
 }
 
 void MatrixOp::createMatrix(const char *filename) {
+    if(A != nullptr || D != nullptr) {
+        qDebug("重新构造矩阵");
+        // destruct
+        for(int k = 0; k < route_num; k++) {
+            for(int i = 0; i < num; i++) {
+                delete[] A[k][i];
+            }
+            delete[] A[k];
+        }
+        delete[] A;
+
+        for(int k = 0; k < num; k++) {
+            delete[] D[k];
+        }
+        delete[] D;
+
+        num_to_name.clear();
+        name_to_num.clear();
+        route_to_which_matrix.clear();
+        matrix_target_route.clear();
+        poses.clear();
+        route_man.clear();
+
+        route_num = 0;
+        num = 0;
+    }
+
     qDebug() << filename << "-> A";
     ifstream fin(filename, ios_base::in);
+    if(!fin.is_open()) {
+        qDebug("in createMatrix:cannot open this file");
+        exit(-2);
+    }
 
     int cnt = 0; // 为了给站点名放置下标而设置的标识，每次加一
 
@@ -38,7 +75,6 @@ void MatrixOp::createMatrix(const char *filename) {
 
     fin >> route_num;
 
-    Route_man<Route> route_man;
 
     set<int> stations;
 
@@ -53,6 +89,8 @@ void MatrixOp::createMatrix(const char *filename) {
     for(int i = 0; i < route_num; i++) {
         A[i] = new Dis*[num];
 
+        //初始化工作
+        //初始化矩阵元素已经标记处所有的线路无法可达--INT_MAX
         for(int j = 0; j < num; j++) {
             A[i][j] = new Dis[num];
             for(int k = 0; k < num; k++) {
@@ -60,7 +98,7 @@ void MatrixOp::createMatrix(const char *filename) {
             }
         }
 
-        //初始化对角线
+        //初始化对角线元素为0
         for(int k = 0; k < num; k++)
             A[i][k][k].value = 0;
 
@@ -97,7 +135,10 @@ void MatrixOp::createMatrix(const char *filename) {
 
             stations.insert(name_to_num[behind_name]);
             
-            A[i][name_to_num[front_name]][name_to_num[behind_name]].value = A[i][name_to_num[behind_name]][name_to_num[front_name]].value = 1;
+            A[i][name_to_num[front_name]][name_to_num[behind_name]].value
+                    = A[i][name_to_num[behind_name]][name_to_num[front_name]].value
+                    = 1;
+
             front_name = behind_name;
         }
     }
@@ -120,6 +161,7 @@ void MatrixOp::createMatrix(const char *filename) {
     //
     //调用dijkstra算法，算出来每个矩阵的直达情况，然后给出距离
     for(int i = 0; i < route_num; i++) {
+        cout << "-------------------------------dealing " << i << " matrix---------------------------";
         Dijkstra(A[i], num, i);
     }
 
@@ -167,8 +209,18 @@ void MatrixOp::createMatrix(const char *filename) {
     Dis **B =  
         combineAs(route_num, num);
 
+    cout << "after combination: \n";
+    for(int i = 0; i < num; i++) {
+        for(int j = 0; j < num; j++)
+            if(B[i][j].value != INT_MAX)
+                cout << B[i][j].value << ' ';
+            else
+                cout << "inf" << ' ';
+        cout << endl;
+    }
+
     Dijkstra(B, num, -1);
-    /*
+
     cout << "after combination and Dijstra algorithm: \n";
     for(int i = 0; i < num; i++) {
         for(int j = 0; j < num; j++)
@@ -178,16 +230,18 @@ void MatrixOp::createMatrix(const char *filename) {
                 cout << "∞" << ' ';
         cout << endl;
     }
-    */
+
 
     D = B;
     
     /*
     print_matrix(D, num);
-    cout << "print path num matrix" << endl;
     */
+    cout << "print path num matrix" << endl;
+
     print_path_num_matrix(D, num);
     fflush(stdout);
+    qDebug("构造完成");
 }
 
 MatrixOp::~MatrixOp() {
@@ -277,10 +331,242 @@ void MatrixOp::print_path_num_matrix(Dis **a, int size) {
     }
 }
 
-QVector<QString> MatrixOp::getNames() {
+QVector<QString> MatrixOp::QgetNames() {
     QVector<QString> res;
     for(auto i : num_to_name) {
         res.push_back(stringOp.str2qstr(i.second));
     }
     return res;
 }
+
+std::vector<std::string> MatrixOp::getNames() {
+    std::vector<std::string> res;
+    for(auto i : num_to_name) {
+        res.push_back(i.second);
+    }
+    return res;
+}
+
+
+void print_path(const set<Path> path) {
+    int cnt = 0;
+    for(auto i : path) {
+        cout << "path" << ++cnt << ": ";
+        for(auto j : i) {
+            cout << j.vex << '(' << j.route_num << ") ";
+        }
+        cout << endl;
+    }
+}
+
+
+void MatrixOp::Dijkstra(Dis **arc, int size, int route_num) {
+    //我把下面dijkstra的原本用来初始化的路径的代码搬到这边来了,并且不再是和底下一样的初始化方式，即把原本value == 1的路径赋予一个初始短路径，不然在底下的assignPath()的时候会出现size = 0的情况。
+    if(route_num != -1) {
+        for(int i = 0; i < size; i++) {
+            for(int j = 0; j < size; j++) {
+                if(arc[i][j].value == 1) {
+                    Path onePath;
+                    onePath.addEdge(i, matrix_target_route[route_num]);
+                    onePath.addEdge(j, matrix_target_route[route_num]);
+                    arc[i][j].addPath(onePath);
+                }
+            }
+        }
+
+    } else {
+        cout << "this dijkstra for D matrix" << endl;
+    }
+    cout << "bebore dijkstra route " << route_num << endl;
+    for(int i = 0; i < size; i++) {
+        cout << "dijkstra i = " << i << " size = " << size << endl;
+        Dijkstra(arc, i, size, route_num);
+    }
+}
+
+void MatrixOp::Dijkstra(Dis **arc, int begin, int size, int route_num) {
+    //debug的标识
+    cout << "dijkstra multi-parameter" << endl;
+    bool debug = false;
+    //bool debug = true;
+
+    /*
+    if(route_num == -1){
+        debug = true;
+    }
+    */
+
+    int count = 0;
+    //bool visited[size];
+    bool *visited = new bool[size];
+    memset(visited, 0, size*sizeof(bool));
+
+    //wait, wait, 这个路径是不是可以用矩阵乘法来做？
+    //回忆一下离散数学的内容
+    //这个for应该是每个Matrix第一次初始化的时候调用的，后期combine之后再进行Dijkstra肯定不能像这样初始化了
+    //所以是不是可以增加一个判断语句，即进入Dijkstra的条件，增加一个参数
+
+
+    //怎么突然觉得初始化不可以在这个地方
+
+    /*
+    if(route_num != -1)
+        for(int i = 0; i < size; i++) {
+            if(!arc[begin][i].initialized) {
+                Path initPath;
+                initPath.addEdge(begin, route_num);
+                initPath.addEdge(i, route_num);
+                arc[begin][i].addPath(initPath);
+                arc[begin][i].initialized = true;
+
+                if(debug) {
+                    printf("初始化一条边，form %d to %d\n", begin, i);
+                }
+            }
+        }
+    */
+
+    while(count < size) {
+        cout << "count is " << count << endl;
+        int min_i = 0;
+        int min = INT_MAX;
+        for(int i = 0; i < size; i++) {
+            if(!visited[i] && arc[begin][i].value < min) {
+                min = arc[begin][i].value;
+                min_i = i;
+            }
+        }
+        visited[min_i] = true;
+
+
+        cout << "min = " << min << " min_i = " << min_i << endl;
+        if(min == INT_MAX) break;
+
+        ++count;
+        for(int i = 0; i < size; i++) {
+            cout << "in for loop, i = " << i << endl;
+            if(!visited[i] && arc[begin][min_i].value != INT_MAX && arc[min_i][i].value != INT_MAX) {
+                cout << "#if = 1" << endl;
+                if( arc[begin][i].value > arc[begin][min_i].value + arc[min_i][i].value ) {
+                    arc[begin][i].value = arc[begin][min_i].value + arc[min_i][i].value;
+                    // 更改路径
+
+                    cout << "before loose -- 1" << endl;
+
+                    arc[begin][i].assignPath( arc[begin][min_i].path * arc[min_i][i].path );
+
+                    cout << "loose -- 1" << endl;
+
+                    if(debug) {
+                        printf("\n");
+                        printf("assign 一条边 assign 之后path.size = %d\n", arc[begin][i].path.size());
+                        printf("path lhs:\n");
+                        print_path(arc[begin][min_i].path);
+                        printf("path rhs:\n");
+                        print_path(arc[min_i][i].path);
+                        //printf("arc[%d][%d].value > arc[%d][%d].value + arc[%d][%d].value\n", begin, i, begin, min_i, min_i, i);
+
+                        printf("arc[%d][%d].value(%d) > arc[%d][%d].value(%d) + arc[%d][%d].value(%d)\n", begin, i, arc[begin][i].value,  begin, min_i, arc[begin][min_i].value, min_i, i, arc[min_i][i].value);
+                        print_path(arc[begin][i].path);
+                        printf("\n");
+
+                    }
+                }
+                //如果相等，那么就增加一条路径
+                //好像有一个问题，会出现重复的path
+
+                else if( arc[begin][i].value != 0 &&
+                        arc[begin][min_i].value != 0 &&
+                        arc[min_i][i].value != 0 &&
+                        arc[begin][i].value == arc[begin][min_i].value + arc[min_i][i].value ) {
+
+                    cout << "before loose -- 2" << endl;
+
+                    arc[begin][i].addPath(arc[begin][min_i].path * arc[min_i][i].path );
+
+                    cout << "loose -- 2" << endl;
+
+
+                    if(debug) {
+                        printf("\n == situation, addPath\n");
+                        printf("path lhs:\n");
+                        print_path(arc[begin][min_i].path);
+                        printf("path rhs:\n");
+                        print_path(arc[min_i][i].path);
+
+                        printf("arc[%d][%d].value(%d) == arc[%d][%d].value(%d) + arc[%d][%d].value(%d)\n", begin, i, arc[begin][i].value,  begin, min_i, arc[begin][min_i].value, min_i, i, arc[min_i][i].value);
+                        print_path(arc[begin][i].path);
+                        printf("\n");
+                    }
+                }
+                /*
+                printf("update arc[%d][%d] = arc[%d][%d] + arc[%d][%d] \n", begin, i, begin, min_i, min_i, i);
+                */
+
+            }
+        }
+    }
+    //update the colum
+    cout << "update the colum" << endl;
+    for(int i = 0; i < size; i++) {
+        //这个reverse是有一个范围的
+        if(i == begin) continue;
+        arc[i][begin].assignReversedPaths(arc[begin][i]);
+        //arc[i][begin] = arc[begin][i];
+    }
+    cout << "end update" << endl;
+    delete[] visited;
+}
+
+
+void MatrixOp::writeToFile(const char * filename) {
+    using namespace std;
+    vector<string> names = getNames();
+    ofstream fout(filename, ios_base::out | ios_base::trunc);
+    if(fout.is_open() != true) {
+        qDebug("wrong! cannot open this file");
+        exit(-1);
+    } else {
+        qDebug("open successfully !");
+    }
+
+    if(names.size() != poses.size()) {
+        qDebug("names's size is not the same sa poses's, wrong");
+        exit(-2);
+    }
+
+    //要对这些names有筛选
+
+    //暴力方式
+
+    int i = 0;
+    while(i < names.size()) {
+        //检查names[i]是否在路径中
+        int number = name_to_num[names[i]];
+        //如果这个站点
+        if(!route_man.check_exist_stop(number)) {
+            names.erase(names.begin() + i);
+            poses.erase(poses.begin() + i);
+            continue;
+        }
+        i++;
+    }
+
+    fout << names.size() << endl;
+    for(int i = 0; i < names.size(); i++) {
+        fout << names[i] << "\t\t" << (int)poses[i].x() << " " << (int)poses[i].y() << endl;
+    }
+
+    fout << route_man.size() << endl;
+
+    auto end = route_man.end();
+    for(auto it = route_man.begin(); it != end; it++){
+        fout << (*it).num << endl;
+        fout << (*it).stops.size() << endl;
+        for(auto index : (*it).stops) {
+            fout << num_to_name[index] << endl;
+        }
+        fout << endl;
+    }
+}
+

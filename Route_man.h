@@ -5,6 +5,11 @@
 #include <unordered_set>
 #include <iostream>
 #include <iterator>
+#include <fstream>
+#include <QDebug>
+#include <QVector>
+#include <QPointF>
+#include <string>
 
 /*
 似乎只能用在保存线路不能用来保存查询结果
@@ -51,7 +56,7 @@ template<typename T = Route>
 class Route_man {
     friend class Route_man_Iterator<T>;
 private:
-    int num;
+    int num;		//公交线路数量
     Route *head;
     Route *tail;
     std::unordered_set<int> route_indexes;
@@ -61,6 +66,39 @@ public:
 
     }
 
+    ~Route_man() {
+        Route *pi = head, *pre = nullptr;
+        while(pi) {
+            pre = pi;
+            pi = pi->next;
+            delete pre;
+        }
+    }
+
+    bool check_exist_stop(int number) {
+        Route *pi = head;
+        while(pi) {
+            for(int i = 0; i < pi->stops.size(); i++) {
+                if(pi->stops[i] == number) {
+                    return true;
+                }
+            }
+            pi = pi->next;
+        }
+        return false;
+    }
+
+    void clear() {
+        num = 0;
+        route_indexes.clear();
+        Route *pi = head, *pre = nullptr;
+        while(pi) {
+            pre = pi;
+            pi = pi->next;
+            delete pre;
+        }
+        head = tail = nullptr;
+    }
     // 输入线路，返回引用
     Route &operator [] (int route_index) {
         if(!check_index_legal(route_index)) {
@@ -146,6 +184,41 @@ public:
         }
         return cnt;
     }
+
+    /*
+    void writeToFile(const char * filename, std::vector<std::string> names, QVector<QPointF> poses) {
+        using namespace std;
+        fstream fout(filename, ios_base::out | ios_base::trunc);
+        if(fout.is_open() != true) {
+            qDebug("wrong! cannot open this file");
+            exit(-1);
+        } else {
+            qDebug("open successfully !");
+        }
+
+        if(names.size() != poses.size()) {
+            qDebug("names's size is not the same sa poses's, wrong");
+            exit(-2);
+        }
+
+        fout << names.size() << endl;
+        for(int i = 0; i < names.size(); i++) {
+            fout << names[i] << "\t\t" << (int)poses[i].x() << " " << (int)poses[i].y() << endl;
+        }
+
+
+        fout << num;
+
+        Route *pi = head;
+        while(pi) {
+            fout << pi->num << endl;
+            fout << pi->stops.size() << endl;
+            for(auto i : pi->stops) {
+                fout <<
+            }
+        }
+    }
+    */
 
     Route_man_Iterator<T> begin() {
         return Route_man_Iterator<T>(*this);

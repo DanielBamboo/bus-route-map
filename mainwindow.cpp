@@ -50,9 +50,6 @@ MainWindow::MainWindow(QWidget *parent)
     stop_num = mapOp->num;
 
     createMap();
-    createAction();
-    createMenu();
-    createOriginConnection();
     //ui->textBrowser->setText("hello\nthisis\n|\nthis");
 
     /*
@@ -62,6 +59,16 @@ MainWindow::MainWindow(QWidget *parent)
     */
     ui->lineEdit->setMap(mapOp);
     ui->lineEdit_2->setMap(mapOp);
+
+    info = new Info();
+    info->setMap(mapOp);
+
+    editRoutes = new EditRoutes();
+    editRoutes->setMap(mapOp);
+
+    createOriginConnection();
+    createAction();
+    createMenu();
 }
 
 void MainWindow::createOriginConnection() {
@@ -83,7 +90,8 @@ void MainWindow::createOriginConnection() {
         connect(busStop[i], &BusStop_Graphics_Item::whoAmI, ui->show_stop_name_label, &QLabel::setText);
     }
 
-
+    // 与EditRoutes的信号连接起来，更改数据的时候重新绘制站点
+    connect(editRoutes, &EditRoutes::comfirmChanges, this, &MainWindow::receive_comfirm_changes_from_editRoutes);
 }
 
 void MainWindow::createMap() {
@@ -105,9 +113,34 @@ void MainWindow::createMap() {
 
     // 创建公交站点
 
-    busStop = new BusStop_Graphics_Item*[stop_num];
+    //busStop = new BusStop_Graphics_Item*[stop_num];
+
     for(int i = 0; i < stop_num; i++) {
-        busStop[i] = new BusStop_Graphics_Item(map);
+        //busStop[i] = new BusStop_Graphics_Item(map);
+        BusStop_Graphics_Item *aStop = new BusStop_Graphics_Item(map);
+        this->busStop.push_back(aStop);
+        busStop[i]->setPixmap(QPixmap(":/item/bus").scaled(20,20));
+        busStop[i]->setPos(mapOp->poses[i] - QPointF(10, 10));
+        busStop[i]->setName(stringOp->str2qstr(mapOp->num_to_name[i]));
+    }
+}
+
+void MainWindow::receive_comfirm_changes_from_editRoutes(bool changed) {
+    qDebug("repaint");
+    repaintBusStop();
+}
+
+void MainWindow::repaintBusStop() {
+    for(int i = 0; i < busStop.size(); i++) {
+        delete busStop[i];
+    }
+    busStop.clear();
+    this->stop_num = mapOp->num;
+
+    for(int i = 0; i < stop_num; i++) {
+        //busStop[i] = new BusStop_Graphics_Item(map);
+        BusStop_Graphics_Item *new_stop = new BusStop_Graphics_Item(map);
+        this->busStop.push_back(new_stop);
         busStop[i]->setPixmap(QPixmap(":/item/bus").scaled(20,20));
         busStop[i]->setPos(mapOp->poses[i] - QPointF(10, 10));
         busStop[i]->setName(stringOp->str2qstr(mapOp->num_to_name[i]));
@@ -130,11 +163,28 @@ void MainWindow::createAction() {
     aboutQtAction = new QAction(tr("About &Qt"), this);
     aboutQtAction->setStatusTip(tr("Show the Qt library's About box"));
     connect(aboutQtAction, &QAction::triggered, qApp, QApplication::aboutQt);
+
+    doSomeQuery = new QAction(tr("查询线路信息或站点信息"));
+    connect(doSomeQuery, &QAction::triggered, this, &MainWindow::on_actionDoSomeQueryTriggered);
+    doSomeEdit = new QAction(tr("更改一些信息"));
+    connect(doSomeEdit, &QAction::triggered, this, &MainWindow::on_actinoDoSomeEditTriggered);
+}
+
+void MainWindow::on_actionDoSomeQueryTriggered() {
+    info->show();
+}
+
+void MainWindow::on_actinoDoSomeEditTriggered() {
+    editRoutes->show();
 }
 
 void MainWindow::createMenu() {
     QMenu *help = menuBar()->addMenu("&help");
     help->addAction(aboutQtAction);
+
+    QMenu *tools = menuBar()->addMenu("&tools");
+    tools->addAction(doSomeQuery);
+    tools->addAction(doSomeEdit);
 }
 
 //作为一个测试，要显示路线
