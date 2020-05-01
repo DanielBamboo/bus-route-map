@@ -8,8 +8,8 @@ class StringOp
 {
 public:
     StringOp();
-    std::string qstr2str(const QString);
-    QString str2qstr(const std::string);
+    static std::string qstr2str(const QString);
+    static QString str2qstr(const std::string);
 };
 
 #endif // STRINGOP_H

@@ -12,7 +12,8 @@
 
 #include "setPath.h"
 #include "stringop.h"
-#include "Route_man.h"
+//#include "Route_man.h"
+#include "Route_man_bst.h"
 
 
 struct pair_hash
@@ -73,7 +74,7 @@ private:
 
     StringOp stringOp;
 
-    Route_man<Route> route_man;
+    Route_man<Route *> route_man;
 };
 
 #endif // MATRIXOP_H

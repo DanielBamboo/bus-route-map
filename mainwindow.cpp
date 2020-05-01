@@ -209,8 +209,38 @@ void MainWindow::showRoute() {
 
     ui->routesList->clear();
     qDebug() << "清除完成";
+
+    //这里应该显示一个缩略的信息：几号线-》几号线-》几号线
+    //好的实现方案应该是在setPath里面的，但是现在我改不动setPath了，所以试试在这里写一个函数
+    /*
     for(int i = 0; i < (mapOp->D)[index_from][index_to].path.size(); i++) {
+
         ui->routesList->insertItem(ui->routesList->count(), QString().asprintf("路线%d ", i+1));
+    }
+    */
+    ui->textBrowser->clear();
+    for(auto i : *(res_paths)) {
+        QString routeChangeInfo;
+        QString infoForTextBrowser;
+        routeChangeInfo += (QString::number(i.get(0).route_num) + "号线");
+        //infoForTextBrowser += mapOp->stringOp.str2qstr(mapOp->num_to_name[i.get(0).vex]) + " " + QString::number(i.get(0).route_num) + "号线";
+        ui->textBrowser->append( mapOp->stringOp.str2qstr(mapOp->num_to_name[i.get(0).vex]) + " " + QString::number(i.get(0).route_num) + "号线" );
+        for(int j = 1; j < i.len(); j++) {
+            int changeFlag = 0;
+            if(i.get(j).route_num != i.get(j-1).route_num) {
+                routeChangeInfo += (" -> " + QString::number(i.get(j).route_num) + "号线\n");
+                changeFlag = 1;
+            }
+            if(changeFlag) {
+                //infoForTextBrowser += "\n" + mapOp->stringOp.str2qstr(mapOp->num_to_name[i.get(j).vex]) + " " + QString::number(i.get(j).route_num) + "号线\n";
+                ui->textBrowser->append("\n" + mapOp->stringOp.str2qstr(mapOp->num_to_name[i.get(j).vex]) + " " + QString::number(i.get(j).route_num) + "号线\n");
+            } else {
+                //infoForTextBrowser += mapOp->stringOp.str2qstr(mapOp->num_to_name[i.get(j).vex]) + "\n";
+                ui->textBrowser->append(mapOp->stringOp.str2qstr(mapOp->num_to_name[i.get(j).vex]) + "\n");
+            }
+        }
+        ui->routesList->insertItem(ui->routesList->count(), routeChangeInfo);
+        //ui->textBrowser->setText(infoForTextBrowser);
     }
     qDebug() << "insertItems 完成";
     //connect(ui->routesList, &QListWidget::currentRowChanged, this, &MainWindow::showRowItem);
@@ -245,6 +275,8 @@ void MainWindow::showRoute() {
 
 void MainWindow::showRowItem(int row) {
     if(row == -1) return;
+
+    //获取是要显示的是哪条路径
     QListWidgetItem *item = ui->routesList->item(row);
     qDebug() << item->text() << "row : " << row;
 
@@ -254,6 +286,22 @@ void MainWindow::showRowItem(int row) {
         qDebug("it++");
         it++;
     }
+
+    ui->textBrowser->clear();
+    QString infoForTextBrowser;
+    ui->textBrowser->append( mapOp->stringOp.str2qstr(mapOp->num_to_name[(*it).get(0).vex]) + " " + QString::number((*it).get(0).route_num) + "号线" );
+    for(int j = 1; j < (*it).len(); j++) {
+        int changeFlag = 0;
+        if((*it).get(j).route_num != (*it).get(j-1).route_num) {
+            changeFlag = 1;
+        }
+        if(changeFlag) {
+            ui->textBrowser->append("\n" + mapOp->stringOp.str2qstr(mapOp->num_to_name[(*it).get(j).vex]) + " " + QString::number((*it).get(j).route_num) + "号线");
+        } else {
+            ui->textBrowser->append(mapOp->stringOp.str2qstr(mapOp->num_to_name[(*it).get(j).vex]));
+        }
+    }
+
     show_path_on_map(*it);
 }
 
@@ -352,8 +400,11 @@ void MainWindow::show_path_on_map(const Path &res) {
 
     int j = 0; // j 保证小于 res.len()，用来遍历这个Path的结点们
 
+    routePen_man.setToRand0();
+
     for(int i = 0; i < lines_num && j < res.len(); i++, j++) {
         if(res.get(j).vex == res.get(j+1).vex) {
+            routePen_man.nextColor();
             j = j+1;
             if(j >= res.len()) {
                 qDebug() << "res len out of bounds";
@@ -363,5 +414,6 @@ void MainWindow::show_path_on_map(const Path &res) {
         qDebug() << "connect " << stringOp->str2qstr(mapOp->num_to_name[res.get(j).vex]) << "and" << stringOp->str2qstr(mapOp->num_to_name[res.get(j+1).vex]);
         QLineF tmpLine(mapOp->poses[res.get(j).vex], mapOp->poses[res.get(j+1).vex]);
         res_lines[i] = new QGraphicsLineItem(tmpLine, map);
+        res_lines[i]->setPen(routePen_man.myPen());
     }
 }

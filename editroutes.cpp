@@ -97,7 +97,7 @@ void EditRoutes::addARoute() {
     }
 
     (mapOp->route_man).addRoute(target_route_number);
-    (mapOp->route_man)[target_route_number].stops = newRouteStops;
+    (mapOp->route_man)[target_route_number]->stops = newRouteStops;
 
     QMessageBox::information(nullptr, "添加成功", info_text);
 }
@@ -128,7 +128,7 @@ void EditRoutes::delAStopFromARoute() {
     int target_stop_index = ui->listStops->currentRow();
     qDebug() << "删除的是" << target_route_num << "号线的" << target_stop_index;
 
-    (mapOp->route_man)[target_route_num].delStop(target_stop_index + 1);
+    (mapOp->route_man)[target_route_num]->delStop(target_stop_index + 1);
     ui->listStops->takeItem(target_stop_index);
 
 }
@@ -169,7 +169,7 @@ void EditRoutes::insertAStopForARoute() {
             qDebug() << "要插入的站点是 " << text << " 编号是 " << insert_stop_number;
 
             //检查text与这条线路的其他站点重复
-            for(auto i : (mapOp->route_man)[target_route_num].stops) {
+            for(auto i : (mapOp->route_man)[target_route_num]->stops) {
                 if(i == insert_stop_number) {
                     QMessageBox::information(nullptr, "检测到违规动作", "你输入了一个已经存在于这条线路的站点");
                     return;
@@ -180,10 +180,10 @@ void EditRoutes::insertAStopForARoute() {
             int target_stop_index = ui->listStops->currentRow();
 
 
-            (mapOp->route_man)[target_route_num].insertStop(insert_stop_number, target_stop_index+1);
+            (mapOp->route_man)[target_route_num]->insertStop(insert_stop_number, target_stop_index+1);
 
             //检查一下这条线路目前的情况
-            for(auto i : (mapOp->route_man)[target_route_num].stops) {
+            for(auto i : (mapOp->route_man)[target_route_num]->stops) {
                 qDebug() << mapOp->stringOp.str2qstr(mapOp->num_to_name[i]);
             }
 
@@ -211,7 +211,7 @@ void EditRoutes::showRoute() {
 
     ui->listStops->clear();
 
-    for(auto i : (mapOp->route_man)[cur_selected_route.toInt()].stops) {
+    for(auto i : (mapOp->route_man)[cur_selected_route.toInt()]->stops) {
         ui->listStops->insertItem(ui->listStops->count(), StringOp().str2qstr(mapOp->num_to_name[i]));
     }
 }

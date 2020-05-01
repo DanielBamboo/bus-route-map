@@ -9,7 +9,7 @@ const std::set<Path> operator * (const std::set<Path> &lhs, const std::set<Path>
         }
     }
 
-    std::cout << "end *" << std::endl;
+    //std::cout << "end *" << std::endl;
 
     return res;
 }

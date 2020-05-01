@@ -1,5 +1,6 @@
 #include "matrixop.h"
-#include "Route_man.h"
+//#include "Route_man.h"
+#include "Route_man_bst.h"
 //#include "DijkstraForDis.h"
 
 #include <fstream>
@@ -9,7 +10,14 @@
 #include <cstdio>
 #include <climits>
 #include <vector>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+#include <sstream>
+#include "search_box/pinyin.h"
 
+#define NORMAL_SIZ BUFSIZ
+#define CHMSK_KEY 0xa5
 
 using namespace std;
 
@@ -20,6 +28,128 @@ MatrixOp::MatrixOp() :
     num(0)
 {
 
+}
+
+stringstream *decrypt(const char * filename)
+{
+    printf("normal_siz: %d\n", NORMAL_SIZ);
+    FILE *fp = fopen(filename, "rb+");
+    if(!fp) {
+        qDebug() << "file do not open";
+        exit(-2);
+    }
+    qDebug() << NORMAL_SIZ;
+    int n;
+    char *buf = new char[NORMAL_SIZ];
+    char *data = new char[8196];
+    data[0] = 0;
+    int len = 0;
+    qDebug("start to read\n");
+
+    //如果已经加密，那么flag = 1; 否则为0
+    int flag = 1;
+    fread(buf, 1, 1, fp);
+    if(buf[0] == '0') {
+        qDebug("does not encrypt\n");
+        flag = 0;
+    } else if(buf[0] == '1'){
+        qDebug("it is an encrypted file");
+    } else {
+        qDebug("error, file is not right");
+        exit(-2);
+    }
+    buf[0] = 0;
+
+    //while ((n = fread(buf, 1, NORMAL_SIZ, fp)) > 0)
+    while(!feof(fp))
+    {
+        n = fread(buf, 1, NORMAL_SIZ, fp);
+
+        qDebug() << "read" << n;
+
+        if(flag == 1) {
+            int i;
+            for (i = 0; i < n; i++)
+            {
+                buf[i] ^= CHMSK_KEY;
+            }
+        }
+
+        len += n;
+        strcat(data, buf);
+        data[len] = 0;
+
+        buf[0] = 0;
+    }
+    data[len] = 0;
+    //printf("len = %d\n", len);
+    qDebug() << "len = " << len;
+
+    //printf("%s\n", data);
+    std::stringstream *s = new std::stringstream();
+    *s << data;
+
+
+    std::string t;
+
+    /*
+    qDebug() << "test decrypt";
+    while(*s >> t) {
+        //printf("%s ", t.c_str());
+        qDebug() << StringOp::str2qstr(t);
+    }
+    */
+
+
+    fflush(fp);
+
+    fclose(fp);
+    delete[] data;
+    delete[] buf;
+    printf("normal end");
+    return s;
+}
+
+int encrypt(const char * filename)
+{
+    FILE *fp = fopen(filename, "rb+");
+    int n;
+    char *buf = new char[NORMAL_SIZ];
+    fread(buf, 1, 1, fp);
+    if(buf[0] == '1') {
+        printf("had encrypted\n");
+        return -1; //表示已经加密
+    } else {
+        qDebug("not encrypted, start to encrypt");
+    }
+    buf[0] = 0;
+
+    while ((n = fread(buf, 1, NORMAL_SIZ, fp)) > 0)
+    {
+        printf("read n: %d\n", n);
+        int i;
+        for (i = 0; i < n; i++)
+        {
+            buf[i] ^= CHMSK_KEY;
+        }
+
+        if (fseek(fp, -n, SEEK_CUR) == -1)
+        {
+            perror("fseek");
+        }
+
+        n = fwrite(buf, 1, n, fp);
+        fflush(fp);//如果不加这句，那么文件大小如果小于库函数缓冲（默认是BUFSIZ大小）时实际上面的写操作并没写进去，从而导致下一次read还是成功，因此程序不会退出
+        buf[0] = 0;
+    }
+
+    rewind(fp);
+    fputc(49, fp); //填入1
+
+    delete [] buf;
+
+    fclose(fp);
+    return 1;
 }
 
 void MatrixOp::createMatrix(const char *filename) {
@@ -51,11 +181,18 @@ void MatrixOp::createMatrix(const char *filename) {
     }
 
     qDebug() << filename << "-> A";
+
+    //对这里进行修改
+    /*
     ifstream fin(filename, ios_base::in);
     if(!fin.is_open()) {
         qDebug("in createMatrix:cannot open this file");
         exit(-2);
     }
+    */
+
+    std::stringstream *pfin = decrypt(filename);
+    std::stringstream &fin = *pfin;
 
     int cnt = 0; // 为了给站点名放置下标而设置的标识，每次加一
 
@@ -74,6 +211,7 @@ void MatrixOp::createMatrix(const char *filename) {
     }
 
     fin >> route_num;
+    qDebug() << "route num : " << route_num;
 
 
     set<int> stations;
@@ -121,8 +259,9 @@ void MatrixOp::createMatrix(const char *filename) {
 
         //routes[i].stations.push_back(name_to_num[front_name]);
         //replaced with route_man
-        route_man[NoDot].addStop(name_to_num[front_name]);
-        
+        //route_man[NoDot].addStop(name_to_num[front_name]);
+        route_man[NoDot]->addStop(name_to_num[front_name]);
+
 
         stations.insert(name_to_num[front_name]);
 
@@ -131,7 +270,8 @@ void MatrixOp::createMatrix(const char *filename) {
             
             //routes[i].stations.push_back(name_to_num[behind_name]);
             //replaced with route_man
-            route_man[NoDot].addStop(name_to_num[behind_name]);
+            //route_man[NoDot].addStop(name_to_num[behind_name]);
+            route_man[NoDot]->addStop(name_to_num[behind_name]);
 
             stations.insert(name_to_num[behind_name]);
             
@@ -143,7 +283,9 @@ void MatrixOp::createMatrix(const char *filename) {
         }
     }
 
-    fin.close();
+    //fin.close();
+    delete pfin;
+
 
     /*
     for(auto i : route_to_which_matrix) {
@@ -242,6 +384,20 @@ void MatrixOp::createMatrix(const char *filename) {
     print_path_num_matrix(D, num);
     fflush(stdout);
     qDebug("构造完成");
+
+    //试着使用一下拼音方法
+    //检查一下是否正确
+    qDebug() << "start to fit pinyin";
+    vector<string> output_py;
+    for(auto i : name_to_num) {
+        output_py.push_back(Pinyin::convert_py(i.first));
+    }
+    for(auto i : output_py) {
+        //cout << i << endl;
+        qDebug() << StringOp::str2qstr(i);
+    }
+    qDebug() << "pinyin end";
+    fflush(stdout);
 }
 
 MatrixOp::~MatrixOp() {
@@ -377,11 +533,32 @@ void MatrixOp::Dijkstra(Dis **arc, int size, int route_num) {
     } else {
         cout << "this dijkstra for D matrix" << endl;
     }
+
+    //测试一下反向生成矩阵，结果是否一样，这里用随机数来决定生成顺序
+
+    srand((unsigned int)time(NULL));
+    int randTarget = rand();
+    if(randTarget % 2 == 0) {
+        //cout << "bebore dijkstra route " << route_num << endl;
+        for(int i = 0; i < size; i++) {
+            //cout << "dijkstra i = " << i << " size = " << size << endl;
+            Dijkstra(arc, i, size, route_num);
+        }
+    } else {
+        //cout << "bebore dijkstra route " << route_num << endl;
+        for(int i = size-1; i >= 0; i--) {
+            //cout << "dijkstra i = " << i << " size = " << size << endl;
+            Dijkstra(arc, i, size, route_num);
+        }
+    }
+
+    /*
     cout << "bebore dijkstra route " << route_num << endl;
     for(int i = 0; i < size; i++) {
         cout << "dijkstra i = " << i << " size = " << size << endl;
         Dijkstra(arc, i, size, route_num);
     }
+    */
 }
 
 void MatrixOp::Dijkstra(Dis **arc, int begin, int size, int route_num) {
@@ -427,7 +604,7 @@ void MatrixOp::Dijkstra(Dis **arc, int begin, int size, int route_num) {
     */
 
     while(count < size) {
-        cout << "count is " << count << endl;
+        //cout << "count is " << count << endl;
         int min_i = 0;
         int min = INT_MAX;
         for(int i = 0; i < size; i++) {
@@ -439,23 +616,23 @@ void MatrixOp::Dijkstra(Dis **arc, int begin, int size, int route_num) {
         visited[min_i] = true;
 
 
-        cout << "min = " << min << " min_i = " << min_i << endl;
+        //cout << "min = " << min << " min_i = " << min_i << endl;
         if(min == INT_MAX) break;
 
         ++count;
         for(int i = 0; i < size; i++) {
-            cout << "in for loop, i = " << i << endl;
+            //cout << "in for loop, i = " << i << endl;
             if(!visited[i] && arc[begin][min_i].value != INT_MAX && arc[min_i][i].value != INT_MAX) {
-                cout << "#if = 1" << endl;
+                //cout << "#if = 1" << endl;
                 if( arc[begin][i].value > arc[begin][min_i].value + arc[min_i][i].value ) {
                     arc[begin][i].value = arc[begin][min_i].value + arc[min_i][i].value;
                     // 更改路径
 
-                    cout << "before loose -- 1" << endl;
+                    //cout << "before loose -- 1" << endl;
 
                     arc[begin][i].assignPath( arc[begin][min_i].path * arc[min_i][i].path );
 
-                    cout << "loose -- 1" << endl;
+                    //cout << "loose -- 1" << endl;
 
                     if(debug) {
                         printf("\n");
@@ -480,11 +657,11 @@ void MatrixOp::Dijkstra(Dis **arc, int begin, int size, int route_num) {
                         arc[min_i][i].value != 0 &&
                         arc[begin][i].value == arc[begin][min_i].value + arc[min_i][i].value ) {
 
-                    cout << "before loose -- 2" << endl;
+                    //cout << "before loose -- 2" << endl;
 
                     arc[begin][i].addPath(arc[begin][min_i].path * arc[min_i][i].path );
 
-                    cout << "loose -- 2" << endl;
+                    //cout << "loose -- 2" << endl;
 
 
                     if(debug) {
@@ -519,6 +696,7 @@ void MatrixOp::Dijkstra(Dis **arc, int begin, int size, int route_num) {
 }
 
 
+//存在安全隐患
 void MatrixOp::writeToFile(const char * filename) {
     using namespace std;
     vector<string> names = getNames();
@@ -534,6 +712,9 @@ void MatrixOp::writeToFile(const char * filename) {
         qDebug("names's size is not the same sa poses's, wrong");
         exit(-2);
     }
+
+    //这是一个标志，表示未被加密
+    fout << 0 << endl;
 
     //要对这些names有筛选
 
@@ -559,6 +740,8 @@ void MatrixOp::writeToFile(const char * filename) {
 
     fout << route_man.size() << endl;
 
+    //遍历所有的线路的站点
+    /*
     auto end = route_man.end();
     for(auto it = route_man.begin(); it != end; it++){
         fout << (*it).num << endl;
@@ -568,5 +751,17 @@ void MatrixOp::writeToFile(const char * filename) {
         }
         fout << endl;
     }
+    */
+    vector<int> keys = route_man.keys();
+    for(auto i : keys) {
+        fout << route_man.get(i)->num << endl;
+        fout << route_man.get(i)->stops.size() << endl;
+        vector<int> &stops = route_man.get(i)->stops;
+        for(int j = 0; j < stops.size(); j++) {
+            fout << num_to_name[stops[j]] << endl;
+        }
+        fout << endl;
+    }
+    encrypt(filename);
 }
 

@@ -52,6 +52,10 @@
 #include "googlesuggest.h"
 #include "matrixop.h"
 #include <map>
+#include <vector>
+#include <string>
+#include "search_box/pinyin.h"
+using namespace std;
 
 const QString gsuggestUrl(QStringLiteral("http://google.com/complete/search?output=toolbar&q=%1"));
 //! [1]
@@ -247,10 +251,53 @@ void GSuggestCompletion::setMap(MatrixOp *mapOp) {
     this->mapOp = mapOp;
 }
 
+//is b match any sequence of a ?
+int match_or_not(QString a, QString b) {
+    int lena = a.length(), lenb = b.length();
+    int **matrix = new int*[lena + 1];
+    for(int i = 0; i < lena + 1; i++) {
+        matrix[i] = new int[lenb + 1];
+        memset(matrix[i], 0, sizeof(int) * lenb);
+    }
+    //lena * lenb 的矩阵
+    for(int i = 1; i < lena+1; i++) {
+        for(int j = 1; j < lenb+1; j++) {
+            if(a[i-1] != b[j-1]) {
+                matrix[i][j] = max(matrix[i-1][j], matrix[i][j-1]);
+            } else {
+                matrix[i][j] = matrix[i-1][j-1] + 1;
+            }
+        }
+    }
+    int res = matrix[lena][lenb] == lenb;
+    for(int i = 0; i < lena + 1; i++) {
+        delete[] matrix[i];
+    }
+    delete[] matrix;
+    return res;
+}
+
 void GSuggestCompletion::kmpResult(QString str) {
     using namespace std;
     QVector<QString> res;
+    vector<string> notQnames = mapOp->getNames();
     QVector<QString> names = mapOp->QgetNames();
+
+    //这个map的定义是这样的，汉字->原汉字，拼音->汉字
+    QMap<QString, QString> include_pinyin_map;
+    for(auto i : names) {
+        include_pinyin_map.insert(i, i);
+    }
+
+    //还得将拼音和中文绑定在一起
+    for(auto i : notQnames) {
+        QString pinyin_name = StringOp::str2qstr(Pinyin::convert_py(i));
+        names.push_back(pinyin_name);
+        include_pinyin_map.insert(pinyin_name, StringOp::str2qstr(i));
+    }
+
+    //改成match_or_not()，以下被注释的是匹配子串
+    /*
     //先不写模式匹配，因为我还没有实现过，先实现一下普通的搜索算法
     for(auto name : names) {
         int i = 0, j = 0;
@@ -264,7 +311,13 @@ void GSuggestCompletion::kmpResult(QString str) {
             }
         }
         if(i == str.length()) {
-            res.push_back(name);
+            res.push_back(include_pinyin_map[name]);
+        }
+    }
+    */
+    for(auto name : names) {
+        if(match_or_not(name, str)) {
+            res.push_back(include_pinyin_map[name]);
         }
     }
 

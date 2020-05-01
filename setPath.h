@@ -124,7 +124,7 @@ public:
     }
 
     void addPath(const set<Path> &t) {
-        std::cout << "addPath begin" << " current path size is " << path.size() << ", set<Path> &t's size is " << t.size() << std::endl;
+        //std::cout << "addPath begin" << " current path size is " << path.size() << ", set<Path> &t's size is " << t.size() << std::endl;
         /*
         std::set_union(std::begin(path), std::end(path),
                        std::begin(t), std::end(t),
@@ -134,7 +134,7 @@ public:
         for(auto &i : t) {
             path.insert(i);
         }
-        std::cout << "addPath end" << std::endl;
+        //std::cout << "addPath end" << std::endl;
     }
 
     void assignPath(const set<Path> &other) {

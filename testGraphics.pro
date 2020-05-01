@@ -25,14 +25,16 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     matrixop.cpp \
+    routepenman.cpp \
     search_box/googlesuggest.cpp \
     search_box/kmp.cpp \
+    search_box/pinyin.cpp \
     search_box/searchbox.cpp \
     setPath.cpp \
     stringop.cpp
 
 HEADERS += \
-    Route_man.h \
+    Route_man_bst.h \
     busstop_graphics_item.h \
     customview.h \
     editroutes.h \
@@ -40,8 +42,10 @@ HEADERS += \
     info.h \
     mainwindow.h \
     matrixop.h \
+    routepenman.h \
     search_box/googlesuggest.h \
     search_box/kmp.h \
+    search_box/pinyin.h \
     search_box/searchbox.h \
     setPath.h \
     stringop.h

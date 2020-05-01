@@ -2,7 +2,8 @@
 #include "ui_info.h"
 
 #include <QDebug>
-#include "Route_man.h"
+//#include "Route_man.h"
+#include "Route_man_bst.h"
 #include "stringop.h"
 
 Info::Info(QWidget *parent) :
@@ -41,7 +42,7 @@ void Info::showRoutes() {
 
     ui->listWidget->clear();
 
-    for(auto i : (mapOp->route_man)[cur_selected_route.toInt()].stops) {
+    for(auto i : (mapOp->route_man)[cur_selected_route.toInt()]->stops) {
         ui->listWidget->insertItem(ui->listWidget->count(), StringOp().str2qstr(mapOp->num_to_name[i]));
     }
 }

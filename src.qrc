@@ -1,7 +1,9 @@
 <RCC>
-    <qresource prefix="/item">
+    <qresource prefix="/item" lang="launch_image">
         <file alias="bus_backup">busItem.png</file>
         <file alias="bus">bus-color.png</file>
+        <file alias="launchIcon">mapIcon.png</file>
+        <file>launch_image.png</file>
     </qresource>
     <qresource prefix="/map">
         <file alias="fczmap">fcz.jpg</file>

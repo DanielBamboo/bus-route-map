@@ -15,9 +15,11 @@
 #include "setPath.h"
 #include "matrixop.h"
 #include "stringop.h"
-#include "Route_man.h"
+//#include "Route_man.h"
 #include "info.h"
 #include "editroutes.h"
+#include "routepenman.h"
+#include "Route_man_bst.h"
 
 class QPixmap;
 class QGraphicsPixmapItem;
@@ -96,5 +98,7 @@ private:
 
     void show_path_on_map(const Path &res);
     void repaintBusStop();
+
+    RoutePen_man routePen_man;
 };
 #endif // MAINWINDOW_H
