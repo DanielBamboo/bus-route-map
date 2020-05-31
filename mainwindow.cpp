@@ -222,7 +222,7 @@ void MainWindow::showRoute() {
     for(auto i : *(res_paths)) {
         QString routeChangeInfo;
         QString infoForTextBrowser;
-        routeChangeInfo += (QString::number(i.get(0).route_num) + "号线");
+        routeChangeInfo += (QString::number(i.get(0).route_num) + "号线" + " "/*QString::number((*(res_paths)).size())*/);
         //infoForTextBrowser += mapOp->stringOp.str2qstr(mapOp->num_to_name[i.get(0).vex]) + " " + QString::number(i.get(0).route_num) + "号线";
         ui->textBrowser->append( mapOp->stringOp.str2qstr(mapOp->num_to_name[i.get(0).vex]) + " " + QString::number(i.get(0).route_num) + "号线" );
         for(int j = 1; j < i.len(); j++) {
