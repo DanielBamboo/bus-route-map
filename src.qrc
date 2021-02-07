@@ -6,8 +6,6 @@
         <file>launch_image.png</file>
     </qresource>
     <qresource prefix="/map">
-        <file alias="fczmap">fcz.jpg</file>
-        <file alias="map1149_1171">fcz2.jpg</file>
         <file alias="map1196_1282">fcz3.jpg</file>
     </qresource>
 </RCC>

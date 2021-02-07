@@ -1,8 +1,0 @@
-#include "routepen.h"
-
-RoutePen::RoutePen()
-{
-
-}
-
-

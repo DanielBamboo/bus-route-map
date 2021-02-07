@@ -61,6 +61,4 @@ RESOURCES += \
 
 DISTFILES += \
     TODO \
-    route.txt \
-    stopPos.txt \
-    stops.txt
+    route.txt
