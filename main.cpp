@@ -4,8 +4,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QSplashScreen>
-#include "customview.h"
-#include "busstop_graphics_item.h"
+#include "Graphic_item/busstop_graphics_item.h"
 #include <QPixmap>
 #include <QTextCodec>
 
@@ -14,13 +13,16 @@
 #include <QString>
 #include <QDebug>
 
+
+/*
+main 函数，开启qt的事件循环并且打开主窗口
+*/
+
 int main(int argc, char *argv[])
 {
 
     QApplication a(argc, argv);
     QApplication::addLibraryPath("./");
-    //QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
-
 
     QPixmap pixmap(":/item/launch_image");
     QSplashScreen splash(pixmap);
@@ -28,33 +30,8 @@ int main(int argc, char *argv[])
         splash.show();
     }
 
-
-    /*
-    std::string term = "晚安";
-    ChineseConvert(term, term);
-    std::cout << term << std::endl;
-
-
-    QString term2 = "晚安";
-    QString term3 = term2.at(0);
-    qDebug() << term3;
-    */
-
-    /*
-    QGraphicsScene scene;
-    //scene.addRect(QRectF(-10, -10, 20, 20));
-    //scene.addText("hello");
-
-
-    CustomView view(&scene);
-    view.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    view.show();
-    */
-
-
     MainWindow w;
     w.show();
-
 
     return a.exec();
 }

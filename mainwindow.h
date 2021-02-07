@@ -11,15 +11,19 @@
 #include <QVector>
 #include <set>
 
-#include "busstop_graphics_item.h"
-#include "setPath.h"
-#include "matrixop.h"
-#include "stringop.h"
-//#include "Route_man.h"
-#include "info.h"
-#include "editroutes.h"
-#include "routepenman.h"
-#include "Route_man_bst.h"
+#include "data_structure/setPath.h"
+#include "data_structure/matrixop.h"
+#include "data_structure/Route_man_bst.h"
+#include "UI_design/info.h"
+#include "UI_design/editroutes.h"
+#include "UI_design/routepenman.h"
+#include "Graphic_item/busstop_graphics_item.h"
+#include "tools/stringop.h"
+
+/*
+ * 主界面类
+ * 包含了主界面所有的信息
+*/
 
 class QPixmap;
 class QGraphicsPixmapItem;
@@ -82,16 +86,15 @@ private:
     int choose_start_cnt;
     int choose_to_cnt;
 
+    // mapOperation
     MatrixOp * mapOp;
     StringOp *stringOp;
 
     Info * info;
     EditRoutes *editRoutes;
 
-//重新开一个域，用来存放查询之后级联操作所需要的东西
 private:
     int res_num;					//查询结果线路的数量
-    //或许我要再次使用route_man了 (暂时行不通)
     std::set<Path> *res_paths;		//保存结果那些路径的引用
     int change_value;				//换乘次数
     QGraphicsLineItem **res_lines;	//查询结果画在地图上的那些线

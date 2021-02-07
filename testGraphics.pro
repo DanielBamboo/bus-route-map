@@ -17,38 +17,34 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    busstop_graphics_item.cpp \
-    customview.cpp \
-    editroutes.cpp \
-    graphics_view_zoom.cpp \
-    info.cpp \
-    main.cpp \
-    mainwindow.cpp \
-    matrixop.cpp \
-    routepenman.cpp \
+    Graphic_item/busstop_graphics_item.cpp \
+    Graphic_item/graphics_view_zoom.cpp \
+    UI_design/editroutes.cpp \
+    UI_design/info.cpp \
+    UI_design/routepenman.cpp \
+    data_structure/matrixop.cpp \
+    data_structure/setPath.cpp \
     search_box/googlesuggest.cpp \
-    search_box/kmp.cpp \
     search_box/pinyin.cpp \
     search_box/searchbox.cpp \
-    setPath.cpp \
-    stringop.cpp
+    tools/stringop.cpp \
+    main.cpp \
+    mainwindow.cpp
 
 HEADERS += \
-    Route_man_bst.h \
-    busstop_graphics_item.h \
-    customview.h \
-    editroutes.h \
-    graphics_view_zoom.h \
-    info.h \
-    mainwindow.h \
-    matrixop.h \
-    routepenman.h \
+    Graphic_item/busstop_graphics_item.h \
+    Graphic_item/graphics_view_zoom.h \
+    UI_design/info.h \
+    UI_design/editroutes.h \
+    UI_design/routepenman.h \
+    data_structure/Route_man_bst.h \
+    data_structure/setPath.h \
+    data_structure/matrixop.h \
     search_box/googlesuggest.h \
-    search_box/kmp.h \
     search_box/pinyin.h \
     search_box/searchbox.h \
-    setPath.h \
-    stringop.h
+    tools/stringop.h \
+    mainwindow.h
 
 FORMS += \
     editroutes.ui \

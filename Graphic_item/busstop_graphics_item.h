@@ -7,6 +7,10 @@
 #include <QEvent>
 #include <QString>
 
+/*
+* 地图上每个小公交站点对应的类
+*/
+
 class BusStop_Graphics_Item : public QObject,  public QGraphicsPixmapItem
 {
     Q_OBJECT
@@ -20,6 +24,7 @@ public:
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent * event);
 signals:
+    // 当点击站点的时候发送一个信号说：我是什么名字
     void whoAmI(QString name);
 private:
     QString name;

@@ -14,6 +14,19 @@
 #include <iostream>
 #include <climits>
 #include <algorithm>
+#include <QDebug>
+
+/*
+ * 核心类3: setPath
+ * 服务matrixOp，是matrixOp中矩阵的元素
+ * 作为矩阵的元素
+ *
+ * 例如[i, j]
+ * 它包括了
+ * path:	i -> j的所有路径信息
+ * value:	换乘次数
+ *
+*/
 
 using std::set;
 using std::cout;
@@ -80,7 +93,6 @@ public:
     vector<Edge>::const_iterator end() const {
         return edge.cend();
     }
-
     
     Path reversePath() {
         Path reverPath;
@@ -99,7 +111,34 @@ public:
         return edge[index];
     }
 
+    void calculateRoutes() {
+        vector<int> routes;
+        int curRoute = -1;
+        for (size_t i = 0; i < this->edge.size(); i++) {
+            // 初始化
+            if (curRoute == -1) {
+                curRoute = (this->edge)[i].route_num;
+
+            } else if ((this->edge)[i].route_num != curRoute) {
+                curRoute = (this->edge)[i].route_num;
+                //qDebug() << "change to " << curRoute << endl;
+            } else {
+                continue;
+            }
+            routes.push_back(curRoute);
+        }
+        /*
+        qDebug() << "calculate routes done" << endl;
+        for(auto i : this->routes) {
+            qDebug() << i;
+        }
+        qDebug() << endl;
+        */
+        this->routes = routes;
+    }
+    vector<int> routes; // 比如一条线路先后经过了 1 -> 2 -> 3 号线，那么这个vector里就会存着1,2,3
 private:
+
     vector<Edge> edge;
 };
 
@@ -107,9 +146,10 @@ private:
 const set<Path> operator * (const set<Path> &lhs, const set<Path> &rhs);
 
 
+// 这是矩阵的元素
 class Dis {
 public:
-    int value;			//换乘次数
+    int value;			//换乘次数 or 代价
     set<Path> path;		//所有路径
     bool initialized;	//是否被初始化//已经没有使用了
 

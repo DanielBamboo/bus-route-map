@@ -3,8 +3,8 @@
 
 #include <QDebug>
 //#include "Route_man.h"
-#include "Route_man_bst.h"
-#include "stringop.h"
+#include "data_structure/Route_man_bst.h"
+#include "tools/stringop.h"
 
 Info::Info(QWidget *parent) :
     QDialog(parent),
@@ -28,12 +28,15 @@ void Info::setMap(MatrixOp *mapOp) {
         ui->comboBox->addItem(QString("线路")+QString::number(i.second));
     }
 
-    //看来要先解决线路问题了，不然在这里也没办法添加线路//已经解决
 
     connect(ui->pushButton_2, &QPushButton::clicked, this, &Info::showRoutes);
     connect(ui->pushButton, &QPushButton::clicked, this, &Info::showStationInfo);
 }
 
+/*
+显示整条路径的信息
+比如选中1号线，就会输出1号线途径站点的序列
+*/
 void Info::showRoutes() {
     QString cur_selected_route = ui->comboBox->currentText();
     cur_selected_route = cur_selected_route.mid(2);
@@ -47,6 +50,10 @@ void Info::showRoutes() {
     }
 }
 
+/*
+输出经过某个站点的信息
+比如输入 永定门 这个站点，会打印经过这个站点的所有公交线路
+*/
 void Info::showStationInfo() {
     QString inputStationName = ui->lineEdit->text();
     int stationNumber = mapOp->name_to_num[StringOp().qstr2str(inputStationName)];

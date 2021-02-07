@@ -13,4 +13,3 @@ const std::set<Path> operator * (const std::set<Path> &lhs, const std::set<Path>
 
     return res;
 }
-

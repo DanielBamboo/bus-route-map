@@ -20,7 +20,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "Graphic_item/graphics_view_zoom.h"
+#include "graphics_view_zoom.h"
 #include "windows.h"
 
 /*
@@ -37,7 +37,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     //设置ui的显示
     ui->setupUi(this);
-    this->setWindowTitle("我的地图");
 
     stringOp = new StringOp();
 

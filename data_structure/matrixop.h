@@ -11,9 +11,20 @@
 
 
 #include "setPath.h"
-#include "stringop.h"
-//#include "Route_man.h"
+#include "tools/stringop.h"
 #include "Route_man_bst.h"
+
+/*
+ * 核心类1
+ * 整个程序的核心开始的地方
+ * 名为MatrixOpration（矩阵操作类）
+ * 它创建出来的对象我称作mapOp(mapOpration)，这个类即是以矩阵的形式保存数据，也是以矩阵的形式把
+ * 地图展现出来
+ *
+ * 每一条公交线路对应着一个矩阵
+ * 而所有n个站点又构成了一个n*n的矩阵，路径信息保存在n*n矩阵的元素里面
+ * 在创建矩阵完毕之后所有的路径都会被计算出来
+*/
 
 
 struct pair_hash
@@ -55,6 +66,8 @@ public:
     ~MatrixOp();
 
 private:
+    // 两个map
+    // 一个是名字与数字的映射，一个是数字与名字的映射
     std::map<std::string, int> name_to_num;
     std::map<int, std::string> num_to_name;
 
@@ -66,13 +79,16 @@ private:
     void Dijkstra(Dis **arc, int size, int route_num);
     void Dijkstra(Dis **arc, int begin, int size, int route_num);
 
+    void optimizeMatrix(Dis **arc, int size);
+
 private:
     int route_num;
     int num; //站点数量
-    Dis ***A;
-    Dis **D;
 
-    StringOp stringOp;
+    Dis ***A;		//每一条线路对应着一个矩阵
+    Dis **D;		//最终保存线路的矩阵
+
+    StringOp stringOp;	//功能见stringop.h
 
     Route_man<Route *> route_man;
 };

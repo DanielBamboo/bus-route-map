@@ -3,7 +3,7 @@
 #include "search_box/searchbox.h"
 #include <map>
 #include <QDebug>
-#include "stringop.h"
+#include "tools/stringop.h"
 #include <QInputDialog>
 #include <string>
 #include <vector>
@@ -16,18 +16,7 @@ EditRoutes::EditRoutes(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->verticalLayout_2->sizeHint();
-
-    //这段会出错是因为EditRoutes的setMap还没有完成
-    /*
-    SearchBox *lineEdit = new SearchBox();
-    lineEdit->setMap(mapOp);
-    lineEdits.push_back(lineEdit);
-    ui->verticalLayout_2->addWidget(lineEdit);
-    */
-
     ui->inputRouteNumberLineEdit->setValidator(new QIntValidator(0, 999, this));
-    //添加限制条件ui->stop
-
     getConnections();
 }
 
@@ -54,6 +43,10 @@ void EditRoutes::getConnections() {
 
     //用于tab_4
     connect(ui->createStopButton, &QPushButton::clicked, this, &EditRoutes::createAStop);
+
+    //用于tab_5
+    connect(ui->tab5_comfirm_edit_button, &QPushButton::clicked, this, &EditRoutes::comfirmEdit);
+    connect(ui->tab5_show_info_button, &QPushButton::clicked, this, &EditRoutes::showEditInfo);
 }
 
 EditRoutes::~EditRoutes()
@@ -100,6 +93,7 @@ void EditRoutes::addARoute() {
     (mapOp->route_man)[target_route_number]->stops = newRouteStops;
 
     QMessageBox::information(nullptr, "添加成功", info_text);
+    fresh();
 }
 
 void EditRoutes::delARoute() {
@@ -197,9 +191,12 @@ void EditRoutes::insertAStopForARoute() {
 }
 
 void EditRoutes::fullListRoutes() {
-    for(auto i : mapOp->matrix_target_route) {
-        ui->listRoutes->insertItem(ui->listRoutes->count(), QString("线路")+QString::number(i.second));
-        ui->listRoutesTab2->insertItem(ui->listRoutes->count(), QString("线路")+QString::number(i.second));
+    ui->listRoutes->clear();
+    ui->listRoutesTab2->clear();
+    //for(auto i : mapOp->matrix_target_route) {
+    for(auto i : mapOp->route_man.keys()) {
+        ui->listRoutes->insertItem(ui->listRoutes->count(), QString("线路")+QString::number(i));
+        ui->listRoutesTab2->insertItem(ui->listRoutes->count(), QString("线路")+QString::number(i));
     }
 }
 
@@ -224,7 +221,13 @@ void EditRoutes::setMap(MatrixOp *mapOp) {
     SearchBox *lineEdit = new SearchBox();
     lineEdit->setMap(mapOp);
     lineEdits.push_back(lineEdit);
+    ui->tab5_enter_name->setMap(mapOp);
     ui->verticalLayout_2->addWidget(lineEdit);
+}
+
+void EditRoutes::fresh() {
+    fullListRoutes();
+
 }
 
 void EditRoutes::addLineEdit() {
@@ -303,4 +306,39 @@ void EditRoutes::createAStop() {
     info_text = info_text + " (" + QString::number(x) + "," + QString::number(y) + ")";
 
     QMessageBox::information(nullptr, "添加成功", info_text);
+}
+
+void EditRoutes::showEditInfo() {
+    int num = mapOp->name_to_num[StringOp::qstr2str(ui->tab5_enter_name->text())];
+    ui->label_14->setText(QString::number(num));
+    ui->tab5_name_edit->setText(StringOp::str2qstr((mapOp->num_to_name)[num]));
+    ui->tab5_x_edit->setText(QString::number((mapOp->poses)[num].rx()));
+    ui->tab5_y_edit->setText(QString::number((mapOp->poses)[num].ry()));
+}
+
+void EditRoutes::comfirmEdit() {
+    QString newName = ui->tab5_name_edit->text();
+    qreal x = ui->tab5_x_edit->text().toDouble();
+    qreal y = ui->tab5_y_edit->text().toDouble();
+    int num = ui->label_14->text().toInt();
+
+    string name = StringOp::qstr2str(newName);
+
+    mapOp->num_to_name[num] = name;
+
+    //先将原本的删除
+    for(auto it = mapOp->name_to_num.begin(); it != mapOp->name_to_num.end(); it++) {
+        if((*it).second == num) {
+            mapOp->name_to_num.erase(it);
+        }
+    }
+
+    //添加新的name_to_num项目(<new_name, num>)
+    mapOp->name_to_num[name] = num;
+
+    //更新坐标
+    mapOp->poses[num].setY(y);
+    mapOp->poses[num].setX(x);
+
+    fresh();
 }

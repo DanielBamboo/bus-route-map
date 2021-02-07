@@ -4,7 +4,13 @@
 #include <QDialog>
 #include <QVector>
 #include <QString>
-#include "matrixop.h"
+#include "data_structure/matrixop.h"
+
+/*
+ * 界面类，用于
+ * 1、查询公交途经信息
+ * 2、查询经过某个站点的所有公交的信息
+*/
 
 namespace Ui {
 class Info;

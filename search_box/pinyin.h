@@ -8,10 +8,13 @@
 #include <sstream>
 
 #include <QDebug>
-#include "stringop.h"
+#include "tools/stringop.h"
 using namespace std;
  
 /*
+* 汉字转拼音类
+* 例如
+* 永定门 -> yongdingmen
 * 引用了这位作者实现的C++汉字转拼音方法
 * 作者：陈鲁勿
 */

@@ -4,6 +4,12 @@
 #include <QPen>
 #include <QColor>
 
+/*
+ * 为了使线路五彩斑斓，创建了一个RoutePen_management类
+ * 功能是实现打印不同公交线路的时候会自动切换画笔的颜色
+ * 功能不简介了
+*/
+
 //一条线路对应一个颜色
 class RoutePen_man
 {

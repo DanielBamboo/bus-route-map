@@ -50,14 +50,16 @@
 
 //! [1]
 #include "googlesuggest.h"
-#include "matrixop.h"
+#include "data_structure/matrixop.h"
 #include <map>
 #include <vector>
 #include <string>
-#include "search_box/pinyin.h"
+#include "pinyin.h"
 using namespace std;
 
-const QString gsuggestUrl(QStringLiteral("http://google.com/complete/search?output=toolbar&q=%1"));
+// 这个类我新增了两个函数，其余都是官方的实现
+// 一个函数用来获取汉字->拼音的信息，一个函数使用最长公共子序列的方式实现简单的模糊匹配
+//const QString gsuggestUrl(QStringLiteral("http://google.com/complete/search?output=toolbar&q=%1"));
 //! [1]
 
 //! [2]
@@ -217,41 +219,14 @@ void GSuggestCompletion::preventSuggest()
 }
 //! [8]
 
-/*
-//! [9]
-void GSuggestCompletion::handleNetworkData(QNetworkReply *networkReply)
-{
-    QUrl url = networkReply->url();
-    if (networkReply->error() == QNetworkReply::NoError) {
-        qDebug("get the result");
-        QVector<QString> choices;
-
-        QByteArray response(networkReply->readAll());
-        QXmlStreamReader xml(response);
-        while (!xml.atEnd()) {
-            xml.readNext();
-            if (xml.tokenType() == QXmlStreamReader::StartElement)
-                if (xml.name() == "suggestion") {
-                    QStringRef str = xml.attributes().value("data");
-                    choices << str.toString();
-                }
-        }
-
-        showCompletion(choices);
-    } else {
-        qDebug("error");
-    }
-
-    networkReply->deleteLater();
-}
-//! [9]
-*/
 
 void GSuggestCompletion::setMap(MatrixOp *mapOp) {
     this->mapOp = mapOp;
 }
 
 //is b match any sequence of a ?
+//最长公共子序列法实现的拼音或者汉字的模糊匹配
+//不能汉字-拼音混写
 int match_or_not(QString a, QString b) {
     int lena = a.length(), lenb = b.length();
     int **matrix = new int*[lena + 1];
@@ -296,25 +271,6 @@ void GSuggestCompletion::kmpResult(QString str) {
         include_pinyin_map.insert(pinyin_name, StringOp::str2qstr(i));
     }
 
-    //改成match_or_not()，以下被注释的是匹配子串
-    /*
-    //先不写模式匹配，因为我还没有实现过，先实现一下普通的搜索算法
-    for(auto name : names) {
-        int i = 0, j = 0;
-        while(j < name.length() && i < str.length()) {
-            if(str[i] == name[j]) {
-                i = i+1;
-                j = j+1;
-            } else {
-                j = j - i + 1;
-                i = 0;
-            }
-        }
-        if(i == str.length()) {
-            res.push_back(include_pinyin_map[name]);
-        }
-    }
-    */
     for(auto name : names) {
         if(match_or_not(name, str)) {
             res.push_back(include_pinyin_map[name]);

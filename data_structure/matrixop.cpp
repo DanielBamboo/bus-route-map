@@ -1,7 +1,5 @@
 #include "matrixop.h"
-//#include "Route_man.h"
 #include "Route_man_bst.h"
-//#include "DijkstraForDis.h"
 
 #include <fstream>
 #include <QDebug>
@@ -29,7 +27,9 @@ MatrixOp::MatrixOp() :
 {
 
 }
-
+/*
+ * 由于保存公交线路的文件已经被加密，所以这边会有一个decript函数用于解密文件，
+*/
 stringstream *decrypt(const char * filename)
 {
     printf("normal_siz: %d\n", NORMAL_SIZ);
@@ -110,6 +110,9 @@ stringstream *decrypt(const char * filename)
     return s;
 }
 
+/*
+ * 将路径信息加密之后保存在filename中
+*/
 int encrypt(const char * filename)
 {
     FILE *fp = fopen(filename, "rb+");
@@ -152,6 +155,12 @@ int encrypt(const char * filename)
     return 1;
 }
 
+/*
+ * 核心函数：构造矩阵
+ * 根据filename对应的文件来构造矩阵
+ * 每一条线路对应着一个矩阵
+ * 最后调用迪杰斯特拉算法计算出最后的D矩阵，它保存了所有站点之间的路径信息
+*/
 void MatrixOp::createMatrix(const char *filename) {
     if(A != nullptr || D != nullptr) {
         qDebug("重新构造矩阵");
@@ -297,10 +306,6 @@ void MatrixOp::createMatrix(const char *filename) {
     }
     */
 
-    //Dijkstra算法好像也要修改了
-    //TODO
-    //重写一个Dijkstra for Dis
-    //
     //调用dijkstra算法，算出来每个矩阵的直达情况，然后给出距离
     for(int i = 0; i < route_num; i++) {
         cout << "-------------------------------dealing " << i << " matrix---------------------------";
@@ -361,6 +366,7 @@ void MatrixOp::createMatrix(const char *filename) {
         cout << endl;
     }
 
+    //对B调用Dijkstra算法，算出最后的矩阵
     Dijkstra(B, num, -1);
 
     cout << "after combination and Dijstra algorithm: \n";
@@ -375,29 +381,22 @@ void MatrixOp::createMatrix(const char *filename) {
 
 
     D = B;
+
+    print_path_num_matrix(D, num);
+
+    // 优化路径，去除几乎重复的路径
+    optimizeMatrix(D, this->num);
     
     /*
     print_matrix(D, num);
     */
-    cout << "print path num matrix" << endl;
+    qDebug() << "print path num matrix" << endl;
+    fflush(stdout);
 
     print_path_num_matrix(D, num);
-    fflush(stdout);
     qDebug("构造完成");
-
-    //试着使用一下拼音方法
-    //检查一下是否正确
-    qDebug() << "start to fit pinyin";
-    vector<string> output_py;
-    for(auto i : name_to_num) {
-        output_py.push_back(Pinyin::convert_py(i.first));
-    }
-    for(auto i : output_py) {
-        //cout << i << endl;
-        qDebug() << StringOp::str2qstr(i);
-    }
-    qDebug() << "pinyin end";
     fflush(stdout);
+
 }
 
 MatrixOp::~MatrixOp() {
@@ -515,7 +514,15 @@ void print_path(const set<Path> path) {
     }
 }
 
-
+/*
+ * 对某个矩阵实现Dijkstra算法
+ * 算法流程是对每一行依次使用迪杰斯特拉算法
+ *
+ * 参数：
+ * arc			2d矩阵的指针
+ * size			矩阵的大小
+ * route_num	矩阵对应的线路编号，-1代表综合矩阵
+*/
 void MatrixOp::Dijkstra(Dis **arc, int size, int route_num) {
     //我把下面dijkstra的原本用来初始化的路径的代码搬到这边来了,并且不再是和底下一样的初始化方式，即把原本value == 1的路径赋予一个初始短路径，不然在底下的assignPath()的时候会出现size = 0的情况。
     if(route_num != -1) {
@@ -577,31 +584,6 @@ void MatrixOp::Dijkstra(Dis **arc, int begin, int size, int route_num) {
     //bool visited[size];
     bool *visited = new bool[size];
     memset(visited, 0, size*sizeof(bool));
-
-    //wait, wait, 这个路径是不是可以用矩阵乘法来做？
-    //回忆一下离散数学的内容
-    //这个for应该是每个Matrix第一次初始化的时候调用的，后期combine之后再进行Dijkstra肯定不能像这样初始化了
-    //所以是不是可以增加一个判断语句，即进入Dijkstra的条件，增加一个参数
-
-
-    //怎么突然觉得初始化不可以在这个地方
-
-    /*
-    if(route_num != -1)
-        for(int i = 0; i < size; i++) {
-            if(!arc[begin][i].initialized) {
-                Path initPath;
-                initPath.addEdge(begin, route_num);
-                initPath.addEdge(i, route_num);
-                arc[begin][i].addPath(initPath);
-                arc[begin][i].initialized = true;
-
-                if(debug) {
-                    printf("初始化一条边，form %d to %d\n", begin, i);
-                }
-            }
-        }
-    */
 
     while(count < size) {
         //cout << "count is " << count << endl;
@@ -696,7 +678,10 @@ void MatrixOp::Dijkstra(Dis **arc, int begin, int size, int route_num) {
 }
 
 
-//存在安全隐患
+/*
+ *
+*/
+
 void MatrixOp::writeToFile(const char * filename) {
     using namespace std;
     vector<string> names = getNames();
@@ -757,7 +742,7 @@ void MatrixOp::writeToFile(const char * filename) {
         fout << route_man.get(i)->num << endl;
         fout << route_man.get(i)->stops.size() << endl;
         vector<int> &stops = route_man.get(i)->stops;
-        for(int j = 0; j < stops.size(); j++) {
+        for(size_t j = 0; j < stops.size(); j++) {
             fout << num_to_name[stops[j]] << endl;
         }
         fout << endl;
@@ -765,3 +750,63 @@ void MatrixOp::writeToFile(const char * filename) {
     encrypt(filename);
 }
 
+void printVector(vector<int> vec) {
+    for(auto i : vec) {
+        cout << i << ' ';
+    }
+    cout << endl;
+}
+
+// ugly way to optimize matrix
+void MatrixOp::optimizeMatrix(Dis **arc, int size) {
+    qDebug() << "do some test";
+    std::set<int> c = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    // erase all odd numbers from c
+    for(auto it = c.begin(); it != c.end(); ) {
+        if(*it % 2 == 1)
+            it = c.erase(it);
+        else
+            ++it;
+    }
+
+    for(int n : c) {
+        std::cout << n << ' ';
+    }
+    std::cout << endl;
+    fflush(stdout);
+    qDebug() << "optimizing matrix" << endl;
+
+    for(int i = 0; i < size; i++) {
+        for(int j = 0; j < size; j++) {
+            set<Path> * setPath =  &(arc[i][j].path);
+            set<Path> newSetPath;
+            set<vector<int>> existsJudger;
+
+            for(auto i : *(setPath)) {
+                Path path = i;
+                path.calculateRoutes();
+                //printVector(path.routes);
+                if (existsJudger.count(path.routes) == 0) {
+                    existsJudger.insert(path.routes);
+                    newSetPath.insert(path);
+                }
+            }
+            // begin to erase same
+            /*
+            qDebug() << "size of this set<Path> is " << newSetPath.size();
+            qDebug() << "these are current routes in the setPath: ";
+            for(auto i : newSetPath) {
+                printVector(i.routes);
+                fflush(stdout);
+            }
+            */
+
+            //qDebug() << "assign to arc[i][j].path";
+            fflush(stdout);
+
+            arc[i][j].assignPath(newSetPath);
+        }
+    }
+    qDebug() << "optimizing done" << endl;
+}

@@ -58,6 +58,11 @@
 
 class MatrixOp;
 
+/*
+ * 这个类取自qt官方的googlesuggest类，也就是搜索引擎输入某个词之后会弹出一些候选的项目
+ * 我改装了一下，成为了一个填写站点缩写就可以获取到补全的一个类
+*/
+
 //! [1]
 class GSuggestCompletion : public QObject
 {

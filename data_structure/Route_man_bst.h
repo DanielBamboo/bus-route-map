@@ -5,6 +5,21 @@
 #include <iostream>
 #include <vector>
 
+/*
+ * 核心类2
+ * Route_management（线路管理类）
+ * 用来存储每一条线路
+ * 可以对其进行修改
+ *
+ * 内部是一棵红黑树，主要功能的api：
+ *
+ * 增加、删除线路
+ * addRoute(int route_num)
+ * del(int route_num)
+ *
+ * 重载的[route_num]，下标访问
+ * 以此来访问、修改线路
+*/
 
 using namespace std;
 
@@ -96,13 +111,9 @@ public:
 		x = static_cast<Node *>(0);
 	}
 	
-	// 我觉得这个可以改成<int, count>的形式，也就是在记录的时候记下
-	// 比如，<二中, 1> --> <二中, 2>等到二中为0的时候就可以不记录了
-	// 现在先写一个遍历版本的check_exist_stop()，然后以后再更改。
 	bool check_exist_stop(int number) {
 		check_exist_stop(root, number);
 	}
-	
 	bool check_exist_stop(Node *h, int number) {
 		if(h == nullptr) return false;
         if(check_exist_stop(h->left, number) || check_exist_stop(h->right, number))
@@ -254,7 +265,7 @@ public:
 			root->color = RED;
 		}
 		root = deleteMin(root);
-		if(!isEmpty()) root.color = BLACK;
+        if(!isEmpty()) root->color = BLACK;
 	}
 	
 	Node * deleteMin(Node *h) {

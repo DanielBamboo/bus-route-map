@@ -54,6 +54,10 @@
 //! [1]
 #include <QLineEdit>
 
+/*
+ * 这个类是外壳
+ * googlesuggest类是模糊补全的实体
+*/
 
 class MatrixOp;
 class GSuggestCompletion;

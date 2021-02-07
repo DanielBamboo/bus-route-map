@@ -4,6 +4,12 @@
 #include <QObject>
 #include <QGraphicsView>
 
+/*
+ * 这个类是网上找到的
+ * 用于地图的缩放
+ * 实现比较简练有效，替代了原来的类
+*/
+
 /*!
  * This class adds ability to zoom QGraphicsView using mouse wheel. The point under cursor
  * remains motionless while it's possible.
